@@ -14,8 +14,8 @@
       <template v-if="modelValue">
         <el-image
           class="single-upload__image"
-          :src="modelValue"
-          :preview-src-list="[modelValue]"
+          :src="displayUrl"
+          :preview-src-list="[displayUrl]"
           @click.stop="handlePreview"
         />
         <el-icon class="single-upload__delete-btn" @click.stop="handleDelete">
@@ -32,6 +32,7 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
 import { UploadRawFile, UploadRequestOptions } from "element-plus";
 import FileAPI from "@/api/file";
 import type { FileInfo } from "@/types/api";
@@ -88,6 +89,15 @@ const modelValue = defineModel("modelValue", {
   default: () => "",
 });
 
+const displayUrl = computed(() => {
+  const url = modelValue.value;
+  if (!url) return url;
+  if (/^https?:\/\//.test(url)) return url;
+  const base = (import.meta.env.VITE_APP_BASE_API ?? "").toString().replace(/\/$/, "");
+  if (!base) return url;
+  return `${base}${url.startsWith("/") ? "" : "/"}${url}`;
+});
+
 /**
  * 限制用户上传文件的格式和大小
  */
@@ -137,7 +147,7 @@ function handleUpload(options: UploadRequestOptions) {
       formData.append(key, props.data[key]);
     });
 
-    FileAPI.upload(formData)
+    FileAPI.uploadAdmin(formData)
       .then((data) => {
         resolve(data);
       })

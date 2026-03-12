@@ -8,13 +8,21 @@ const FileAPI = {
       url: "/api/v1/files",
       method: "post",
       data: formData,
-      headers: { "Content-Type": "multipart/form-data" },
       onUploadProgress: (progressEvent) => {
         if (progressEvent.total) {
           const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
           onProgress?.(percent);
         }
       },
+    });
+  },
+
+  /** 管理端上传文件（传入 FormData） */
+  uploadAdmin(formData: FormData) {
+    return request<any, FileInfo>({
+      url: "/api/admin/files",
+      method: "post",
+      data: formData,
     });
   },
 
@@ -26,7 +34,6 @@ const FileAPI = {
       url: "/api/v1/files",
       method: "post",
       data: formData,
-      headers: { "Content-Type": "multipart/form-data" },
     });
   },
 

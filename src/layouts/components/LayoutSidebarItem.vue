@@ -71,6 +71,25 @@ const MenuIcon = defineComponent({
   setup(props) {
     const isElIcon = computed(() => props.icon?.startsWith("el-icon"));
     const iconName = computed(() => props.icon?.replace("el-icon-", ""));
+    const svgIconName = computed(() => {
+      const name = props.icon;
+      if (!name || name.startsWith("el-icon")) return name;
+      const aliases: Record<string, string> = {
+        order: "table",
+        list: "table",
+        service: "system",
+        category: "cascader",
+        banner: "browser",
+        user: "role",
+        rider: "monitor",
+        hall: "todo",
+        performance: "monitor",
+        config: "setting",
+        log: "file",
+        system: "setting",
+      };
+      return aliases[name] ?? name;
+    });
 
     return () => {
       if (!props.icon) {
@@ -83,7 +102,7 @@ const MenuIcon = defineComponent({
       }
 
       // SVG 图标
-      return h("div", { class: `i-svg:${props.icon}` });
+      return h("div", { class: `i-svg:${svgIconName.value}` });
     };
   },
 });

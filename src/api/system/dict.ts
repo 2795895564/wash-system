@@ -11,7 +11,7 @@ import type {
   PageResult,
 } from "@/types/api";
 
-const DICT_BASE_URL = "/api/v1/dicts";
+const DICT_BASE_URL = "/api/admin/dicts";
 
 type DictTagTypeCode = "N" | "P" | "S" | "W" | "I" | "D";
 

@@ -28,6 +28,7 @@ export const constantRoutes: RouteRecordRaw[] = [
     name: "/",
     component: Layout,
     redirect: "/dashboard",
+    meta: { hidden: true },
     children: [
       {
         path: "dashboard",
@@ -36,9 +37,58 @@ export const constantRoutes: RouteRecordRaw[] = [
         // 参考文档: https://cn.vuejs.org/guide/built-ins/keep-alive.html#include-exclude
         name: "Dashboard",
         meta: {
-          title: "首页",
+          title: "仪表盘",
           icon: "homepage",
           affix: true,
+          keepAlive: true,
+        },
+      },
+      {
+        path: "order/list",
+        component: () => import("@/views/orders/index.vue"),
+        name: "Orders",
+        meta: {
+          title: "订单管理",
+          icon: "list",
+          hidden: true,
+          keepAlive: true,
+        },
+      },
+      {
+        path: "orders",
+        redirect: "order/list",
+        meta: { hidden: true },
+      },
+      {
+        path: "riders",
+        component: () => import("@/views/riders/index.vue"),
+        name: "Riders",
+        meta: {
+          title: "骑手管理",
+          icon: "user",
+          hidden: true,
+          keepAlive: true,
+        },
+      },
+      {
+        path: "service/category",
+        component: () => import("@/views/service/category/index.vue"),
+        name: "ServiceCategory",
+        meta: {
+          title: "服务分类",
+          icon: "list",
+          hidden: true,
+          keepAlive: true,
+        },
+      },
+      {
+        path: "service/banner",
+        component: () => import("@/views/service/banner/index.vue"),
+        name: "ServiceBanner",
+        meta: {
+          title: "轮播图管理",
+          icon: "list",
+          hidden: true,
           keepAlive: true,
         },
       },
@@ -57,6 +107,12 @@ export const constantRoutes: RouteRecordRaw[] = [
         name: "Profile",
         component: () => import("@/views/profile/index.vue"),
         meta: { title: "个人中心", icon: "user", hidden: true },
+      },
+      {
+        path: "dispatch/assign-rider",
+        name: "AssignRider",
+        component: () => import("@/views/dispatch/assign-rider/index.vue"),
+        meta: { title: "指派骑手", icon: "user", hidden: true },
       },
       {
         path: "my-notice",

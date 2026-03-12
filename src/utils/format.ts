@@ -84,3 +84,11 @@ export function formatCurrency(amount: number, decimals: number = 2): string {
   const formatted = amount.toFixed(decimals).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   return "¥" + formatted;
 }
+
+export function formatWNumber(num: number): string {
+  const n = Number(num ?? 0);
+  if (!Number.isFinite(n)) return "0";
+  if (Math.abs(n) <= 9999) return String(n);
+  const w = n / 10000;
+  return `${w.toFixed(1)}w`;
+}

@@ -17,10 +17,10 @@
         <SizeSelect />
       </div>
 
-      <!-- 语言选择 -->
+      <!-- 语言选择
       <div class="navbar-actions__item">
         <LangSelect />
-      </div>
+      </div> -->
 
       <!-- 通知 -->
       <div class="navbar-actions__item">
@@ -67,7 +67,7 @@ import { useAppStore, useSettingsStore, useUserStore } from "@/store";
 import CommandPalette from "@/components/CommandPalette/index.vue";
 import Fullscreen from "@/components/Fullscreen/index.vue";
 import SizeSelect from "@/components/SizeSelect/index.vue";
-import LangSelect from "@/components/LangSelect/index.vue";
+
 import NoticeDropdown from "@/components/NoticeDropdown/index.vue";
 const appStore = useAppStore();
 const settingStore = useSettingsStore();
@@ -147,7 +147,8 @@ function handleSettingsClick() {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 44px; /* 增加最小点击区域到44px，符合人机交互标准 */
+    min-width: 44px;
+    /* 增加最小点击区域到44px，符合人机交互标准 */
     height: 44px;
     padding: 0 8px;
     text-align: center;

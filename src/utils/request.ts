@@ -24,6 +24,13 @@ http.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = AuthStorage.getAccessToken();
 
+    const data: unknown = (config as any).data;
+    if (typeof FormData !== "undefined" && data instanceof FormData) {
+      if (config.headers && (config.headers as any)["Content-Type"]) {
+        delete (config.headers as any)["Content-Type"];
+      }
+    }
+
     if (config.headers.Authorization === "no-auth") {
       delete config.headers.Authorization;
     } else if (token) {
@@ -48,8 +55,9 @@ http.interceptors.response.use(
     }
 
     const { code, data, msg } = response.data;
+    const normalizedCode = typeof code === "string" ? code : Number(code);
 
-    if (code === ApiCodeEnum.SUCCESS) {
+    if (normalizedCode === ApiCodeEnum.SUCCESS || normalizedCode === "00000") {
       return data;
     }
 

@@ -119,158 +119,52 @@
 
     <!-- 数据统计 -->
     <el-row :gutter="10" class="mt-5">
-      <!-- 在线用户数量 -->
-      <el-col :span="8" :xs="24" class="mb-xs-3">
-        <el-card shadow="never" class="h-full flex flex-col">
-          <template #header>
-            <div class="flex-x-between">
-              <span class="text-gray">在线用户</span>
-              <el-tag type="danger" size="small">实时</el-tag>
-            </div>
-          </template>
-
-          <div class="flex-x-between mt-2 flex-1">
-            <div class="flex-y-center">
-              <span class="text-lg transition-all duration-300 hover:scale-110">
-                {{ onlineUserCount }}
-              </span>
-              <span v-if="isConnected" class="ml-2 text-xs text-[#67c23a]">
-                <el-icon><Connection /></el-icon>
-                已连接
-              </span>
-              <span v-else class="ml-2 text-xs text-[#f56c6c]">
-                <el-icon><Failed /></el-icon>
-                未连接
-              </span>
-            </div>
-            <div class="i-svg:people w-8 h-8 animate-[pulse_2s_infinite]" />
-          </div>
-
-          <div class="flex-x-between mt-2 text-sm text-gray">
-            <span>更新时间</span>
-            <span>{{ formattedTime }}</span>
-          </div>
-        </el-card>
+      <el-col :span="6" :xs="24" class="mb-xs-3">
+        <DashboardCard
+          title="今日订单数"
+          :value="todayOrderCount"
+          tag-text="今日"
+          tag-type="primary"
+          clickable
+          format-w
+          @click="handleGotoTodayOrders"
+        />
       </el-col>
 
-      <!-- 访客量UV) -->
-      <el-col :span="8" :xs="24" class="mb-xs-3">
-        <el-skeleton :loading="visitStatsLoading" :rows="5" animated>
-          <template #template>
-            <el-card>
-              <template #header>
-                <div>
-                  <el-skeleton-item variant="h3" style="width: 40%" />
-                  <el-skeleton-item variant="rect" style="float: right; width: 1em; height: 1em" />
-                </div>
-              </template>
-
-              <div class="flex-x-between">
-                <el-skeleton-item variant="text" style="width: 30%" />
-                <el-skeleton-item variant="circle" style="width: 2em; height: 2em" />
-              </div>
-              <div class="mt-5 flex-x-between">
-                <el-skeleton-item variant="text" style="width: 50%" />
-                <el-skeleton-item variant="text" style="width: 1em" />
-              </div>
-            </el-card>
-          </template>
-          <template v-if="!visitStatsLoading">
-            <el-card shadow="never" class="h-full flex flex-col">
-              <template #header>
-                <div class="flex-x-between">
-                  <span class="text-gray">访客数(UV)</span>
-                  <el-tag type="success" size="small">日</el-tag>
-                </div>
-              </template>
-
-              <div class="flex-x-between mt-2 flex-1">
-                <div class="flex-y-center">
-                  <span class="text-lg">{{ displayTransitionUvCount }}</span>
-                  <span
-                    :class="[
-                      'text-xs',
-                      'ml-2',
-                      computeGrowthRateClass(visitStatsData.uvGrowthRate),
-                    ]"
-                  >
-                    <el-icon>
-                      <Top v-if="visitStatsData.uvGrowthRate > 0" />
-                      <Bottom v-else-if="visitStatsData.uvGrowthRate < 0" />
-                    </el-icon>
-                    {{ formatGrowthRate(visitStatsData.uvGrowthRate) }}
-                  </span>
-                </div>
-                <div class="i-svg:visitor w-8 h-8" />
-              </div>
-
-              <div class="flex-x-between mt-2 text-sm text-gray">
-                <span>总访客数</span>
-                <span>{{ displayTransitionTotalUvCount }}</span>
-              </div>
-            </el-card>
-          </template>
-        </el-skeleton>
+      <el-col :span="6" :xs="24" class="mb-xs-3">
+        <DashboardCard
+          title="今日收入"
+          :value="todayIncome"
+          value-type="money"
+          tag-text="完成"
+          tag-type="success"
+          clickable
+          @click="handleGotoTodayIncomeOrders"
+        />
       </el-col>
 
-      <!-- 浏览量(PV) -->
-      <el-col :span="8" :xs="24">
-        <el-skeleton :loading="visitStatsLoading" :rows="5" animated>
-          <template #template>
-            <el-card>
-              <template #header>
-                <div>
-                  <el-skeleton-item variant="h3" style="width: 40%" />
-                  <el-skeleton-item variant="rect" style="float: right; width: 1em; height: 1em" />
-                </div>
-              </template>
+      <el-col :span="6" :xs="24" class="mb-xs-3">
+        <DashboardCard
+          title="待处理订单数"
+          :value="pendingOrderCount"
+          tag-text="待处理"
+          tag-type="warning"
+          clickable
+          format-w
+          @click="handleGotoPendingOrders"
+        />
+      </el-col>
 
-              <div class="flex-x-between">
-                <el-skeleton-item variant="text" style="width: 30%" />
-                <el-skeleton-item variant="circle" style="width: 2em; height: 2em" />
-              </div>
-              <div class="mt-5 flex-x-between">
-                <el-skeleton-item variant="text" style="width: 50%" />
-                <el-skeleton-item variant="text" style="width: 1em" />
-              </div>
-            </el-card>
-          </template>
-          <template v-if="!visitStatsLoading">
-            <el-card shadow="never" class="h-full flex flex-col">
-              <template #header>
-                <div class="flex-x-between">
-                  <span class="text-gray">浏览量(PV)</span>
-                  <el-tag type="primary" size="small">日</el-tag>
-                </div>
-              </template>
-
-              <div class="flex-x-between mt-2 flex-1">
-                <div class="flex-y-center">
-                  <span class="text-lg">{{ displayTransitionPvCount }}</span>
-                  <span
-                    :class="[
-                      'text-xs',
-                      'ml-2',
-                      computeGrowthRateClass(visitStatsData.pvGrowthRate),
-                    ]"
-                  >
-                    <el-icon>
-                      <Top v-if="visitStatsData.pvGrowthRate > 0" />
-                      <Bottom v-else-if="visitStatsData.pvGrowthRate < 0" />
-                    </el-icon>
-                    {{ formatGrowthRate(visitStatsData.pvGrowthRate) }}
-                  </span>
-                </div>
-                <div class="i-svg:browser w-8 h-8" />
-              </div>
-
-              <div class="flex-x-between mt-2 text-sm text-gray">
-                <span>总浏览量</span>
-                <span>{{ displayTransitionTotalPvCount }}</span>
-              </div>
-            </el-card>
-          </template>
-        </el-skeleton>
+      <el-col :span="6" :xs="24">
+        <DashboardCard
+          title="骑手今日完成单数"
+          :value="riderTodayFinishCount"
+          tag-text="今日"
+          tag-type="info"
+          clickable
+          format-w
+          @click="handleGotoRiderRanking"
+        />
       </el-col>
     </el-row>
 
@@ -280,14 +174,18 @@
         <el-card>
           <template #header>
             <div class="flex-x-between">
-              <span>访问趋势</span>
-              <el-radio-group v-model="visitTrendDateRange" size="small">
-                <el-radio-button label="近7天" :value="7" />
-                <el-radio-button label="近30天" :value="30" />
+              <span>近7天订单趋势</span>
+              <el-radio-group v-model="orderTrendDateRange" size="small">
+                <el-radio-button label="按日" :value="'day'" />
+                <el-radio-button label="按周" :value="'week'" disabled />
+                <el-radio-button label="按月" :value="'month'" disabled />
               </el-radio-group>
             </div>
           </template>
-          <ECharts :options="visitTrendChartOptions" height="400px" />
+          <div v-if="!orderTrendChartOptions" class="py-12">
+            <el-empty description="暂无趋势数据" />
+          </div>
+          <ECharts v-else :options="orderTrendChartOptions" height="400px" />
         </el-card>
       </el-col>
       <!-- 最新动态-->
@@ -295,58 +193,148 @@
         <el-card>
           <template #header>
             <div class="flex-x-between">
-              <span class="header-title">最新动态</span>
-              <el-link
-                type="primary"
-                underline="never"
-                href="https://gitee.com/youlaiorg/vue3-element-admin/releases"
-                target="_blank"
-              >
-                完整记录
-                <el-icon class="link-icon"><TopRight /></el-icon>
-              </el-link>
+              <span class="header-title">收入构成</span>
             </div>
           </template>
 
-          <el-scrollbar height="400px">
-            <el-timeline class="p-3">
-              <el-timeline-item
-                v-for="(item, index) in vesionList"
-                :key="index"
-                :timestamp="item.date"
-                placement="top"
-                :color="index === 0 ? '#67C23A' : '#909399'"
-                :hollow="index !== 0"
-                size="large"
-              >
-                <div class="version-item" :class="{ 'latest-item': index === 0 }">
-                  <div>
-                    <el-text tag="strong">{{ item.title }}</el-text>
-                    <el-tag v-if="item.tag" :type="index === 0 ? 'success' : 'info'" size="small">
-                      {{ item.tag }}
-                    </el-tag>
-                  </div>
-
-                  <el-text class="version-content">{{ item.content }}</el-text>
-
-                  <div v-if="item.link">
-                    <el-link
-                      :type="index === 0 ? 'primary' : 'info'"
-                      :href="item.link"
-                      target="_blank"
-                      underline="never"
-                    >
-                      详情
-                      <el-icon class="link-icon"><TopRight /></el-icon>
-                    </el-link>
-                  </div>
-                </div>
-              </el-timeline-item>
-            </el-timeline>
-          </el-scrollbar>
+          <div v-if="!incomeCompositionChartOptions" class="py-12">
+            <el-empty description="暂无收入构成数据" />
+          </div>
+          <ECharts v-else :options="incomeCompositionChartOptions" height="400px" />
         </el-card>
       </el-col>
     </el-row>
+
+    <el-row :gutter="10" class="mt-5">
+      <el-col :xs="24" :span="16">
+        <el-card>
+          <template #header>
+            <div class="flex-x-between">
+              <span>骑手业绩排行</span>
+            </div>
+          </template>
+          <div v-if="!riderRankingChartOptions" class="py-12">
+            <el-empty description="暂无排行数据" />
+          </div>
+          <ECharts v-else :options="riderRankingChartOptions" height="400px" />
+        </el-card>
+      </el-col>
+
+      <el-col :xs="24" :span="8">
+        <el-card>
+          <template #header>
+            <div class="flex-x-between">
+              <span>快捷操作</span>
+            </div>
+          </template>
+
+          <div class="flex flex-col gap-3">
+            <el-button type="primary" size="large" @click="handleCreateOrder">新建订单</el-button>
+            <el-button type="warning" size="large" @click="handleAssignRider">指派骑手</el-button>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
+
+    <el-dialog
+      v-model="createOrderVisible"
+      title="新建订单"
+      width="640px"
+      :close-on-click-modal="false"
+    >
+      <el-form
+        ref="createOrderFormRef"
+        :model="createOrderForm"
+        :rules="createOrderRules"
+        label-width="100px"
+      >
+        <el-form-item label="学生" prop="studentId">
+          <el-select
+            v-model="createOrderForm.studentId"
+            filterable
+            placeholder="请输入关键词搜索"
+            style="width: 100%"
+          >
+            <el-option
+              v-for="s in studentOptions"
+              :key="s.id"
+              :label="`${s.name}（ID:${s.id}）`"
+              :value="s.id"
+            />
+          </el-select>
+        </el-form-item>
+
+        <el-form-item label="服务分类">
+          <el-select
+            v-model="selectedServiceCategoryId"
+            placeholder="请选择服务分类"
+            style="width: 100%"
+            @change="handleChangeServiceCategory"
+          >
+            <el-option
+              v-for="c in serviceCategoryOptions"
+              :key="c.id"
+              :label="c.name"
+              :value="c.id"
+            />
+          </el-select>
+        </el-form-item>
+
+        <el-form-item label="地址" prop="address">
+          <el-input v-model="createOrderForm.address" placeholder="如：郑科南苑 4号楼 104室" />
+        </el-form-item>
+
+        <el-form-item label="楼栋" prop="building">
+          <el-input v-model="createOrderForm.building" placeholder="如：4号楼" />
+        </el-form-item>
+
+        <el-form-item label="预约时间" prop="appointmentTime">
+          <el-date-picker
+            v-model="createOrderForm.appointmentTime"
+            type="datetime"
+            value-format="YYYY-MM-DDTHH:mm:ss"
+            format="YYYY-MM-DD HH:mm:ss"
+            placeholder="请选择预约时间"
+            style="width: 100%"
+          />
+        </el-form-item>
+
+        <el-form-item label="备注" prop="remark">
+          <el-input v-model="createOrderForm.remark" type="textarea" :rows="3" placeholder="可选" />
+        </el-form-item>
+
+        <el-form-item label="服务项" prop="items">
+          <div class="w-full">
+            <div
+              v-for="(it, idx) in createOrderForm.items"
+              :key="idx"
+              class="flex gap-2 items-center mb-2"
+            >
+              <el-select v-model="it.serviceId" placeholder="服务项" style="flex: 1">
+                <el-option
+                  v-for="svc in serviceOptions"
+                  :key="svc.id"
+                  :label="svc.name"
+                  :value="svc.id"
+                />
+              </el-select>
+              <el-input-number v-model="it.quantity" :min="1" :step="1" />
+              <el-button type="danger" plain @click="handleRemoveServiceItem(idx)">删除</el-button>
+            </div>
+            <el-button type="primary" plain @click="handleAddServiceItem">添加服务项</el-button>
+          </div>
+        </el-form-item>
+      </el-form>
+
+      <template #footer>
+        <el-button :disabled="createOrderSubmitting" @click="createOrderVisible = false">
+          取消
+        </el-button>
+        <el-button type="primary" :loading="createOrderSubmitting" @click="handleSubmitCreateOrder">
+          提交
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -356,64 +344,26 @@ defineOptions({
   inheritAttrs: false,
 });
 
-import { dayjs } from "element-plus";
-import { ref } from "vue";
-import StatisticsAPI from "@/api/system/statistics";
-import type { VisitStatsDetail, VisitTrendDetail } from "@/types/api";
+import { computed, onMounted, ref } from "vue";
+import type { FormInstance, FormRules } from "element-plus";
 import { useUserStore } from "@/store/modules/user";
-import { formatGrowthRate } from "@/utils";
-import { useTransition, useDateFormat } from "@vueuse/core";
-import { Connection, Failed } from "@element-plus/icons-vue";
+import { useRouter } from "vue-router";
+import DashboardAPI from "@/api/dashboard";
+import OrderAPI from "@/api/order";
+import type { CreateOrderRequest } from "@/api/order";
+import type {
+  IncomeCompositionResponse,
+  OrderTrendResponse,
+  RiderRankingResponse,
+} from "@/api/dashboard";
+import DashboardCard from "./components/DashboardCard.vue";
+import type { EChartsCoreOption } from "echarts/core";
+import { formatCurrency } from "@/utils/format";
+import { ElMessage } from "element-plus";
 
-// 在线用户数量：移除 websocket 依赖后，改为静态展示
-const onlineUserCount = ref(0);
-const lastUpdateTime = ref<Date | null>(null);
-const isConnected = ref(false);
-
-// 格式化时间戳
-const formattedTime = computed(() => {
-  if (!lastUpdateTime.value) return "--";
-  return useDateFormat(lastUpdateTime.value, "HH:mm:ss").value;
-});
-
-interface VersionItem {
-  id: string;
-  title: string; // 版本标题（如：v2.4.0）
-  date: string; // 发布时间
-  content: string; // 版本描述
-  link: string; // 详情链接
-  tag?: string; // 版本标签（可选）
-}
+const router = useRouter();
 
 const userStore = useUserStore();
-
-// 当前通知公告列表
-const vesionList = ref<VersionItem[]>([
-  {
-    id: "1",
-    title: "v2.4.0",
-    date: "2021-09-01 00:00:00",
-    content: "实现基础框架搭建，包含权限管理、路由系统等核心功能。",
-    link: "https://gitee.com/youlaiorg/vue3-element-admin/releases",
-    tag: "里程碑",
-  },
-  {
-    id: "2",
-    title: "v2.4.0",
-    date: "2021-09-01 00:00:00",
-    content: "实现基础框架搭建，包含权限管理、路由系统等核心功能。",
-    link: "https://gitee.com/youlaiorg/vue3-element-admin/releases",
-    tag: "里程碑",
-  },
-  {
-    id: "3",
-    title: "v2.4.0",
-    date: "2021-09-01 00:00:00",
-    content: "实现基础框架搭建，包含权限管理、路由系统等核心功能。",
-    link: "https://gitee.com/youlaiorg/vue3-element-admin/releases",
-    tag: "里程碑",
-  },
-]);
 
 // 当前时间（用于计算问候语）
 const currentDate = new Date();
@@ -435,198 +385,349 @@ const greetings = computed(() => {
   }
 });
 
-// 访客统计数据加载状态
-const visitStatsLoading = ref(true);
-// 访客统计数据
-const visitStatsData = ref<VisitStatsDetail>({
-  todayUvCount: 0,
-  uvGrowthRate: 0,
-  totalUvCount: 0,
-  todayPvCount: 0,
-  pvGrowthRate: 0,
-  totalPvCount: 0,
+const todayOrderCount = ref(0);
+const todayIncome = ref(0);
+const pendingOrderCount = ref(0);
+const riderTodayFinishCount = ref(0);
+
+const orderTrendDateRange = ref<"day" | "week" | "month">("day");
+const orderTrendChartOptions = ref<EChartsCoreOption>();
+const incomeCompositionChartOptions = ref<EChartsCoreOption>();
+const riderRankingChartOptions = ref<EChartsCoreOption>();
+
+const createOrderVisible = ref(false);
+const createOrderSubmitting = ref(false);
+const createOrderFormRef = ref<FormInstance>();
+
+const studentOptions = ref<Array<{ id: number; name: string }>>([{ id: 5, name: "测试学生" }]);
+
+const serviceOptions = ref<Array<{ id: number; name: string }>>([]);
+const serviceCategoryOptions = ref<Array<{ id: number; name: string }>>([]);
+const selectedServiceCategoryId = ref<number>();
+
+const createOrderForm = ref<CreateOrderRequest>({
+  studentId: 5,
+  address: "郑科南苑 8号楼 411室",
+  building: "8号楼",
+  appointmentTime: "",
+  remark: "",
+  items: [{ serviceId: 101, quantity: 1 }],
 });
 
-// 数字过渡动画
-const transitionUvCount = useTransition(
-  computed(() => visitStatsData.value.todayUvCount),
-  {
-    duration: 1000,
-    transition: [0.25, 0.1, 0.25, 1.0], // CSS cubic-bezier
-  }
-);
-
-const transitionTotalUvCount = useTransition(
-  computed(() => visitStatsData.value.totalUvCount),
-  {
-    duration: 1200,
-    transition: [0.25, 0.1, 0.25, 1.0],
-  }
-);
-
-const transitionPvCount = useTransition(
-  computed(() => visitStatsData.value.todayPvCount),
-  {
-    duration: 1000,
-    transition: [0.25, 0.1, 0.25, 1.0],
-  }
-);
-
-const transitionTotalPvCount = useTransition(
-  computed(() => visitStatsData.value.totalPvCount),
-  {
-    duration: 1200,
-    transition: [0.25, 0.1, 0.25, 1.0],
-  }
-);
-
-// 过渡结果可能是 Ref<number>，为模板中使用做类型和格式处理（避免 TS 报错）
-const displayTransitionUvCount = computed(() =>
-  Math.round(Number((transitionUvCount as any)?.value ?? transitionUvCount))
-);
-const displayTransitionTotalUvCount = computed(() =>
-  Math.round(Number((transitionTotalUvCount as any)?.value ?? transitionTotalUvCount))
-);
-const displayTransitionPvCount = computed(() =>
-  Math.round(Number((transitionPvCount as any)?.value ?? transitionPvCount))
-);
-const displayTransitionTotalPvCount = computed(() =>
-  Math.round(Number((transitionTotalPvCount as any)?.value ?? transitionTotalPvCount))
-);
-
-// 访问趋势日期范围（单位：天）
-const visitTrendDateRange = ref(7);
-// 访问趋势图表配置
-const visitTrendChartOptions = ref();
-
-/**
- * 获取访客统计数据
- */
-const fetchVisitStatsData = () => {
-  StatisticsAPI.getVisitOverview()
-    .then((data) => {
-      visitStatsData.value = data;
-    })
-    .finally(() => {
-      visitStatsLoading.value = false;
-    });
+const createOrderRules: FormRules = {
+  studentId: [{ required: true, message: "请选择学生", trigger: "change" }],
+  address: [{ required: true, message: "请输入地址", trigger: "blur" }],
+  appointmentTime: [{ required: true, message: "请选择预约时间", trigger: "change" }],
+  items: [
+    {
+      validator: (_rule, value, callback) => {
+        if (!Array.isArray(value) || value.length === 0) {
+          callback(new Error("请至少添加 1 个服务项"));
+          return;
+        }
+        for (const it of value) {
+          if (!it?.serviceId) {
+            callback(new Error("请选择服务项"));
+            return;
+          }
+          const qty = Number(it?.quantity ?? 0);
+          if (!Number.isFinite(qty) || qty <= 0) {
+            callback(new Error("服务项数量必须大于 0"));
+            return;
+          }
+        }
+        callback();
+      },
+      trigger: "change",
+    },
+  ],
 };
 
-/**
- * 获取访问趋势数据，并更新图表配置
- */
-const fetchVisitTrendData = () => {
-  const startDate = dayjs()
-    .subtract(visitTrendDateRange.value - 1, "day")
-    .toDate();
-  const endDate = new Date();
+function buildOrderTrendOptions(list: OrderTrendResponse) {
+  const sorted = [...list].sort((a, b) => a.date.localeCompare(b.date));
+  const xAxisData = sorted.map((i) => i.date.slice(5));
+  const orderCountData = sorted.map((i) => i.orderCount);
+  const orderAmountData = sorted.map((i) => i.orderAmount);
 
-  StatisticsAPI.getVisitTrend({
-    startDate: dayjs(startDate).format("YYYY-MM-DD"),
-    endDate: dayjs(endDate).format("YYYY-MM-DD"),
-  }).then((data) => {
-    updateVisitTrendChartOptions(data);
-  });
-};
-
-/**
- * 更新访问趋势图表的配置项
- *
- * @param data - 访问趋势数据
- */
-const updateVisitTrendChartOptions = (data: VisitTrendDetail) => {
-  visitTrendChartOptions.value = {
+  return {
     tooltip: {
       trigger: "axis",
+      formatter: (params: any[]) => {
+        const map = new Map(params.map((p) => [p.seriesName, p.value]));
+        const orderCount = Number(map.get("订单量") ?? 0);
+        const orderAmount = Number(map.get("交易额") ?? 0);
+        const date = params?.[0]?.axisValue ?? "";
+        return `${date}<br/>订单量：${orderCount}<br/>交易额：${formatCurrency(orderAmount)}`;
+      },
     },
     legend: {
-      data: ["浏览量(PV)", "访客量UV)"],
-      bottom: 0,
+      data: ["订单量", "交易额"],
     },
     grid: {
-      left: "1%",
-      right: "5%",
-      bottom: "10%",
+      left: 40,
+      right: 40,
+      top: 40,
+      bottom: 40,
       containLabel: true,
     },
     xAxis: {
       type: "category",
-      data: data.dates,
+      data: xAxisData,
     },
-    yAxis: {
-      type: "value",
-      splitLine: {
-        show: true,
-        lineStyle: {
-          type: "dashed",
-        },
+    yAxis: [
+      {
+        type: "value",
+        name: "订单量",
       },
-    },
+      {
+        type: "value",
+        name: "交易额",
+      },
+    ],
     series: [
       {
-        name: "浏览量(PV)",
+        name: "订单量",
         type: "line",
-        data: data.pvList,
-        areaStyle: {
-          color: "rgba(64, 158, 255, 0.1)",
-        },
         smooth: true,
-        itemStyle: {
-          color: "#4080FF",
-        },
-        lineStyle: {
-          color: "#4080FF",
-        },
+        data: orderCountData,
       },
       {
-        name: "访客量UV)",
+        name: "交易额",
         type: "line",
-        data: data.ipList,
-        areaStyle: {
-          color: "rgba(103, 194, 58, 0.1)",
-        },
         smooth: true,
-        itemStyle: {
-          color: "#67C23A",
-        },
-        lineStyle: {
-          color: "#67C23A",
-        },
+        yAxisIndex: 1,
+        data: orderAmountData,
       },
     ],
   };
-};
+}
 
-/**
- * 根据增长率计算对应的 CSS 类名
- *
- * @param growthRate - 增长率数值
- */
-const computeGrowthRateClass = (growthRate?: number): string => {
-  if (!growthRate) {
-    return "text-[--el-color-info]";
-  }
-  if (growthRate > 0) {
-    return "text-[--el-color-danger]";
-  } else if (growthRate < 0) {
-    return "text-[--el-color-success]";
-  } else {
-    return "text-[--el-color-info]";
-  }
-};
+function buildIncomeCompositionOptions(list: IncomeCompositionResponse) {
+  const seriesData = list.map((i: { categoryName: string; amount: number }) => ({
+    name: i.categoryName,
+    value: i.amount,
+  }));
 
-// 监听访问趋势日期范围的变化，重新获取趋势数据
-watch(
-  () => visitTrendDateRange.value,
-  () => {
-    fetchVisitTrendData();
-  },
-  { immediate: true }
-);
+  return {
+    tooltip: {
+      trigger: "item",
+      formatter: (params: any) => {
+        const value = Number(params?.value ?? 0);
+        const percent = params?.percent ?? 0;
+        return `${params?.name}<br/>${formatCurrency(value)} (${percent}%)`;
+      },
+    },
+    legend: {
+      show: true,
+      type: "scroll",
+      bottom: 0,
+      selectedMode: true,
+    },
+    series: [
+      {
+        name: "收入构成",
+        type: "pie",
+        radius: ["40%", "70%"],
+        avoidLabelOverlap: true,
+        label: {
+          show: false,
+        },
+        emphasis: {
+          label: {
+            show: true,
+          },
+        },
+        data: seriesData,
+      },
+    ],
+  };
+}
+
+function buildRiderRankingOptions(list: RiderRankingResponse) {
+  const sorted = [...list].sort((a, b) => b.finishCount - a.finishCount);
+  const yAxisData = sorted.map((i) => i.riderName);
+  const finishCountData = sorted.map((i) => i.finishCount);
+  const deliveryFeeData = sorted.map((i) => i.deliveryFee);
+
+  return {
+    tooltip: {
+      trigger: "axis",
+      axisPointer: { type: "shadow" },
+      formatter: (params: any[]) => {
+        const map = new Map(params.map((p) => [p.seriesName, p.value]));
+        const finishCount = Number(map.get("完成单数") ?? 0);
+        const deliveryFee = Number(map.get("配送费收入") ?? 0);
+        return `${params?.[0]?.name}<br/>完成单数：${finishCount}<br/>配送费收入：${formatCurrency(deliveryFee)}`;
+      },
+    },
+    legend: {
+      data: ["完成单数", "配送费收入"],
+    },
+    grid: {
+      left: 40,
+      right: 40,
+      top: 40,
+      bottom: 40,
+      containLabel: true,
+    },
+    xAxis: {
+      type: "value",
+    },
+    yAxis: {
+      type: "category",
+      data: yAxisData,
+    },
+    series: [
+      {
+        name: "完成单数",
+        type: "bar",
+        data: finishCountData,
+      },
+      {
+        name: "配送费收入",
+        type: "bar",
+        data: deliveryFeeData,
+      },
+    ],
+  };
+}
+
+function handleCreateOrder() {
+  createOrderVisible.value = true;
+  void preloadCreateOrderData();
+}
+
+async function preloadCreateOrderData() {
+  const categories = await OrderAPI.getCategoryList().catch(() => []);
+
+  serviceCategoryOptions.value = categories;
+
+  if (!selectedServiceCategoryId.value && categories.length) {
+    selectedServiceCategoryId.value = categories[0].id;
+  }
+
+  if (selectedServiceCategoryId.value) {
+    await handleChangeServiceCategory(selectedServiceCategoryId.value);
+  }
+}
+
+async function handleChangeServiceCategory(categoryId: number) {
+  selectedServiceCategoryId.value = categoryId;
+  const detail = await OrderAPI.getCategoryDetail(categoryId);
+  serviceOptions.value = (detail?.services ?? []).map((s) => ({ id: s.id, name: s.serviceName }));
+
+  const serviceIdSet = new Set(serviceOptions.value.map((s) => s.id));
+  const defaultServiceId = serviceOptions.value[0]?.id;
+
+  if (!defaultServiceId) return;
+
+  for (const it of createOrderForm.value.items) {
+    const sid = Number(it.serviceId);
+    if (!serviceIdSet.has(sid)) {
+      it.serviceId = defaultServiceId;
+    }
+  }
+}
+
+function handleAddServiceItem() {
+  createOrderForm.value.items.push({ serviceId: serviceOptions.value[0]?.id ?? 0, quantity: 1 });
+}
+
+function handleRemoveServiceItem(index: number) {
+  createOrderForm.value.items.splice(index, 1);
+}
+
+async function handleSubmitCreateOrder() {
+  if (!createOrderFormRef.value) return;
+  if (createOrderSubmitting.value) return;
+
+  const valid = await createOrderFormRef.value.validate().catch(() => false);
+  if (!valid) return;
+
+  try {
+    createOrderSubmitting.value = true;
+    const resp = await OrderAPI.createOrder({
+      studentId: Number(createOrderForm.value.studentId),
+      address: createOrderForm.value.address,
+      building: createOrderForm.value.building,
+      appointmentTime: createOrderForm.value.appointmentTime,
+      remark: createOrderForm.value.remark,
+      items: createOrderForm.value.items.map((i) => ({
+        serviceId: Number(i.serviceId),
+        quantity: Number(i.quantity),
+      })),
+    });
+    createOrderVisible.value = false;
+    ElMessage.success(`创建成功，订单号：${resp.orderSn}`);
+    router.push({ path: "/orders", query: { orderSn: resp.orderSn } });
+  } finally {
+    createOrderSubmitting.value = false;
+  }
+}
+
+function handleGotoTodayOrders() {
+  router.push({ path: "/orders", query: { range: "today", from: "dashboard" } });
+}
+
+function handleGotoTodayIncomeOrders() {
+  router.push({ path: "/orders", query: { range: "today", paid: "1", from: "dashboard" } });
+}
+
+function handleGotoPendingOrders() {
+  router.push({
+    path: "/orders",
+    query: { status: "pending", statusList: "0,30", from: "dashboard" },
+  });
+}
+
+function handleGotoRiderRanking() {
+  router.push({ path: "/riders", query: { range: "today", from: "dashboard" } });
+}
+
+function handleAssignRider() {
+  router.push({ name: "AssignRider", query: { mode: "manual" } });
+}
 
 // 组件挂载后加载访客统计数据和通知公告数据
-onMounted(() => {
-  fetchVisitStatsData();
+onMounted(async () => {
+  const [statsRes, trendRes, compositionRes, rankingRes] = await Promise.allSettled([
+    DashboardAPI.getStatistics(),
+    DashboardAPI.getOrderTrend(7),
+    DashboardAPI.getIncomeComposition(),
+    DashboardAPI.getRiderRanking({ top: 5 }),
+  ]);
+
+  if (statsRes.status === "fulfilled") {
+    todayOrderCount.value = statsRes.value.todayOrderCount;
+    todayIncome.value = statsRes.value.todayIncome;
+    pendingOrderCount.value = statsRes.value.pendingOrderCount;
+    riderTodayFinishCount.value = statsRes.value.riderTodayFinishCount;
+  } else {
+    ElMessage.error("获取仪表盘统计数据失败");
+  }
+
+  if (trendRes.status === "fulfilled") {
+    const trend = trendRes.value;
+    orderTrendChartOptions.value = trend.length ? buildOrderTrendOptions(trend) : undefined;
+  } else {
+    orderTrendChartOptions.value = undefined;
+  }
+
+  if (compositionRes.status === "fulfilled") {
+    const composition = compositionRes.value;
+    incomeCompositionChartOptions.value = composition.length
+      ? buildIncomeCompositionOptions(composition)
+      : undefined;
+  } else {
+    incomeCompositionChartOptions.value = undefined;
+  }
+
+  if (rankingRes.status === "fulfilled") {
+    const ranking = rankingRes.value;
+    riderRankingChartOptions.value = ranking.length ? buildRiderRankingOptions(ranking) : undefined;
+  } else {
+    riderRankingChartOptions.value = undefined;
+  }
 });
 </script>
 
