@@ -74,7 +74,10 @@
           <el-input v-model="form.card.enName" placeholder="如：LAUNDRY" />
         </el-form-item>
         <el-form-item label="图标URL" prop="card.iconUrl" required>
-          <single-image-upload v-model:modelValue="form.card.iconUrl" :data="{ folder: 'home' }" />
+          <single-image-upload
+            v-model:modelValue="form.card.iconUrl"
+            :data="{ folder: 'uploads/home' }"
+          />
         </el-form-item>
         <el-form-item label="排序" prop="card.sortOrder">
           <el-input-number v-model="form.card.sortOrder" :min="0" />

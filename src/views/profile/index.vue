@@ -6,22 +6,16 @@
         <el-card class="user-card">
           <div class="user-info">
             <div class="avatar-wrapper">
-              <el-avatar :src="userStore.userInfo.avatar" :size="100" />
-              <el-button
-                type="info"
-                class="avatar-edit-btn"
-                circle
-                :icon="Camera"
-                size="small"
-                @click="triggerFileUpload"
-              />
-              <input
-                ref="fileInput"
-                type="file"
-                style="display: none"
-                accept="image/*"
-                @change="handleFileChange"
-              />
+              <el-avatar :src="avatarDisplayUrl" :size="100" />
+              <div class="avatar-uploader">
+                <SingleImageUpload
+                  v-model:modelValue="avatarTemp"
+                  :data="{ folder: 'uploads/user' }"
+                  :style="{ width: '100px', height: '100px' }"
+                  @update:modelValue="handleAvatarUploaded"
+                />
+              </div>
+              <el-button type="info" class="avatar-edit-btn" circle :icon="Camera" size="small" />
             </div>
             <div class="user-name">
               <span class="nickname">{{ userProfile.nickname }}</span>
@@ -278,17 +272,38 @@ import type {
 } from "@/types/api";
 
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from "vue";
-import FileAPI from "@/api/file";
 import { useUserStoreHook } from "@/store";
 import { redirectToLogin } from "@/utils/auth";
 
 import { ElMessage, ElMessageBox } from "element-plus";
 
+import SingleImageUpload from "@/components/Upload/SingleImageUpload.vue";
 import { Camera } from "@element-plus/icons-vue";
 
 const userStore = useUserStoreHook();
 
 const userProfile = ref<UserProfileDetail>({});
+
+/**
+ * 头像显示 URL：兼容
+ * - 绝对 URL（http/https）
+ * - 相对 URL（/uploads/xxx），需要拼接 VITE_APP_BASE_API
+ */
+const avatarDisplayUrl = computed(() => {
+  const url = (userStore.userInfo.avatar ?? "").toString();
+  if (!url) return url;
+  if (/^https?:\/\//.test(url)) return url;
+  const base = (import.meta.env.VITE_APP_BASE_API ?? "").toString().replace(/\/$/, "");
+  if (!base) return url;
+  return `${base}${url.startsWith("/") ? "" : "/"}${url}`;
+});
+
+/**
+ * 与 service 模块保持一致：复用 SingleImageUpload 进行头像上传与预览。
+ * - 上传成功后组件会把 fileInfo.url 回填到 avatarTemp
+ * - 然后我们调用 updateProfile 写入用户资料，并同步 store 显示
+ */
+const avatarTemp = ref("");
 
 const enum DialogType {
   ACCOUNT = "account",
@@ -579,31 +594,16 @@ const handleCancel = () => {
   }
 };
 
-const fileInput = ref<HTMLInputElement | null>(null);
-
-const triggerFileUpload = () => {
-  fileInput.value?.click();
-};
-
-const handleFileChange = async (event: Event) => {
-  const target = event.target as HTMLInputElement;
-  const file = target.files ? target.files[0] : null;
-  if (file) {
-    // 调用文件上传API
-    try {
-      const data = await FileAPI.uploadFile(file);
-      // 更新用户信息
-      await UserAPI.updateProfile({
-        avatar: data.url,
-      });
-      // 更新用户头像
-      userStore.userInfo.avatar = data.url;
-    } catch (error) {
-      console.error("头像上传失败：" + error);
-      ElMessage.error("头像上传失败");
-    }
+async function handleAvatarUploaded(url: string) {
+  if (!url) return;
+  try {
+    await UserAPI.updateProfile({ avatar: url });
+    userStore.userInfo.avatar = url;
+    ElMessage.success("头像更新成功");
+  } catch {
+    ElMessage.error("头像更新失败");
   }
-};
+}
 
 /** 加载用户信息 */
 const loadUserProfile = async () => {
@@ -648,10 +648,27 @@ onBeforeUnmount(() => {
       display: inline-block;
       margin-bottom: 16px;
 
+      /* 复用 service 的上传组件：覆盖到头像区域上，仅作为“更换入口”，不重复展示头像 */
+      .avatar-uploader {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 2;
+        width: 100px;
+        height: 100px;
+        opacity: 0;
+      }
+
+      .avatar-wrapper:hover .avatar-uploader {
+        opacity: 1;
+      }
+
       .avatar-edit-btn {
         position: absolute;
         right: 0;
         bottom: 0;
+        z-index: 1;
+        pointer-events: none;
         background: rgba(0, 0, 0, 0.5);
         border: none;
         transition: all 0.3s ease;
@@ -659,6 +676,21 @@ onBeforeUnmount(() => {
         &:hover {
           background: rgba(0, 0, 0, 0.7);
         }
+      }
+
+      .avatar-uploader :deep(.el-upload--picture-card) {
+        width: 100px;
+        height: 100px;
+        background: rgba(0, 0, 0, 0.35);
+        border: none;
+      }
+
+      .avatar-uploader :deep(.el-upload--picture-card:hover) {
+        background: rgba(0, 0, 0, 0.45);
+      }
+
+      .avatar-uploader :deep(.el-upload--picture-card .el-icon) {
+        color: #fff;
       }
     }
 

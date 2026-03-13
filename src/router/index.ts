@@ -55,6 +55,21 @@ export const constantRoutes: RouteRecordRaw[] = [
         },
       },
       {
+        // 管理员用户列表页面（sys_user）：
+        // - 路由地址：/#/user/list
+        // - 页面文件：src/views/user/list/index.vue
+        // - 注意：个人中心(profile)相关的用户接口在 src/api/system/user.ts，此处新增路由不影响 profile
+        path: "user/list",
+        component: () => import("@/views/user/list/index.vue"),
+        name: "UserList",
+        meta: {
+          title: "用户列表",
+          icon: "user",
+          hidden: true,
+          keepAlive: true,
+        },
+      },
+      {
         path: "orders",
         redirect: "order/list",
         meta: { hidden: true },

@@ -94,7 +94,10 @@
           <el-input v-model="form.tag" placeholder="可选" />
         </el-form-item>
         <el-form-item label="图片URL" prop="image_url">
-          <single-image-upload v-model:modelValue="form.image_url" :data="{ folder: 'banner' }" />
+          <single-image-upload
+            v-model:modelValue="form.image_url"
+            :data="{ folder: 'uploads/banner' }"
+          />
         </el-form-item>
         <el-form-item label="链接类型" prop="link_type">
           <el-select v-model="form.link_type" style="width: 100%">
@@ -271,9 +274,25 @@ function validateBeforeSubmit(payload: BannerUpsertRequest) {
     ? payload.link_value
     : (payload.link_value ?? origin?.link_value ?? null);
 
-  if (isCreate && !finalImageUrl) return "请输入图片URL";
+  if (isCreate && !finalImageUrl) return "请上传图片";
   if ((finalLinkType ?? 0) !== 0 && !finalLinkValue?.toString().trim()) return "请输入链接参数";
   return "";
+}
+
+function normalizeUploadedUrl(url?: string) {
+  const v = (url ?? "").toString().trim();
+  if (!v) return "";
+  // 兼容 SingleImageUpload 回填绝对URL的情况：统一转成相对路径，便于后端存储/校验
+  // 例：https://domain.com/uploads/banner/a.png -> /uploads/banner/a.png
+  try {
+    if (/^https?:\/\//.test(v)) {
+      const u = new URL(v);
+      return u.pathname;
+    }
+  } catch {
+    // ignore
+  }
+  return v;
 }
 
 async function handleSubmit() {
@@ -283,6 +302,13 @@ async function handleSubmit() {
     submitting.value = true;
 
     const payload = buildPatchPayload();
+    if ("image_url" in payload) {
+      payload.image_url = normalizeUploadedUrl(payload.image_url);
+      // 同步回写表单，避免校验仍读取到旧值导致误判
+      if (!editingId.value) {
+        form.image_url = payload.image_url;
+      }
+    }
     const msg = validateBeforeSubmit(payload);
     if (msg) {
       ElMessage.warning(msg);
