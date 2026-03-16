@@ -20,7 +20,10 @@ const props = defineProps({
 });
 
 const isExternalLink = computed(() => {
-  return isExternal(props.to.path || "");
+  // 说明：侧边栏传入的 to 可能是 vue-router 的 Location 对象，path 未必始终存在。
+  // 仅当 path 是字符串且符合外链协议时，才按外链处理。
+  const path = typeof (props.to as any)?.path === "string" ? (props.to as any).path : "";
+  return isExternal(path);
 });
 
 const linkType = computed(() => (isExternalLink.value ? "a" : "router-link"));

@@ -1,14 +1,10 @@
 <template>
+  @@
   <div class="auth-view">
     <div class="auth-view__toolbar">
       <el-tooltip content="主题切换" placement="bottom">
         <div class="toolbar-item">
           <ThemeSwitch />
-        </div>
-      </el-tooltip>
-      <el-tooltip content="语言切换" placement="bottom">
-        <div class="toolbar-item">
-          <LangSelect size="text-20px" />
         </div>
       </el-tooltip>
     </div>
@@ -18,24 +14,24 @@
       <section class="auth-feature">
         <div class="auth-feature__badge">
           <span class="auth-feature__dot" />
-          Enterprise Ready
+          Smart Wash Service
         </div>
-        <h1 class="auth-feature__title">企业级管理系统</h1>
+        <h1 class="auth-feature__title">智慧洗护管理系统</h1>
         <p class="auth-feature__subtitle">
-          提供安全、高效、可扩展的管理解决方案，助力企业数字化转型与业务增长。
+          覆盖门店运营、订单流转与会员管理，让每一次服务更标准、更高效。
         </p>
         <ul class="auth-feature__highlights">
           <li>
             <span>✓</span>
-            统一身份认证与权限管理
+            预约下单、到店服务、进度可追踪
           </li>
           <li>
             <span>✓</span>
-            数据安全与操作审计
+            会员权益、积分/次卡、优惠灵活配置
           </li>
           <li>
             <span>✓</span>
-            灵活扩展与高可用架构
+            统计报表、员工绩效、经营数据一目了然
           </li>
         </ul>
       </section>
@@ -50,10 +46,7 @@
               <span class="auth-panel__title">{{ appConfig.title }}</span>
             </div>
             <div v-if="appConfig.version" class="auth-panel__version-row">
-              <el-text size="small" type="info">VERSION</el-text>
-              <el-tag v-if="appConfig.version" size="small" effect="light" round>
-                {{ `v${appConfig.version}` }}
-              </el-tag>
+              <el-text size="small" type="info">门店运营 · 订单管理 · 会员服务</el-text>
             </div>
           </div>
         </div>
@@ -61,13 +54,6 @@
         <transition name="fade-slide" mode="out-in">
           <component :is="formComponents[component]" v-model="component" class="auth-panel__form" />
         </transition>
-
-        <footer class="auth-panel__footer">
-          <el-text size="small">
-            Copyright © 2021 - 2025 youlai.tech
-            <a href="http://beian.miit.gov.cn/" target="_blank">皖ICP备00064962号</a>
-          </el-text>
-        </footer>
       </section>
     </div>
   </div>
@@ -77,7 +63,6 @@
 import logo from "@/assets/images/logo.png";
 import { appConfig } from "@/settings";
 import ThemeSwitch from "@/components/ThemeSwitch/index.vue";
-import LangSelect from "@/components/LangSelect/index.vue";
 
 type LayoutMap = "login" | "register" | "resetPwd";
 

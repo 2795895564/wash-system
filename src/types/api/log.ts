@@ -6,34 +6,30 @@ import type { BaseQueryParams } from "./common";
 
 /** 日志分页查询参数 */
 export interface LogQueryParams extends BaseQueryParams {
-  /** 搜索关键字 */
-  keywords?: string;
-  /** 操作时间 */
-  createTime?: [string, string];
+  /** 开始日期（YYYY-MM-DD） */
+  startDate?: string;
+  /** 结束日期（YYYY-MM-DD） */
+  endDate?: string;
+  /** 操作人用户ID */
+  userId?: number;
+  /** 是否成功（1成功/0失败） */
+  success?: 0 | 1;
+  /** 关键字（匹配 path/username） */
+  keyword?: string;
 }
 
 /** 日志分页对象 */
 export interface LogItem {
-  /** 日志ID */
-  id: string;
-  /** 日志模块 */
-  module: string;
-  /** 日志内容 */
-  content: string;
-  /** 请求路径 */
-  requestUri: string;
-  /** 请求方法 */
+  id: number;
+  userId: number;
+  username: string;
   method: string;
-  /** IP地址 */
+  path: string;
   ip: string;
-  /** 地区 */
-  region: string;
-  /** 浏览器 */
-  browser: string;
-  /** 终端系统 */
-  os: string;
-  /** 执行时间(毫秒) */
-  executionTime: number;
-  /** 操作人 */
-  operator: string;
+  userAgent: string;
+  requestParams: string;
+  responseCode: string;
+  success: 0 | 1;
+  costMs: number;
+  createTime: string;
 }

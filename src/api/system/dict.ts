@@ -11,7 +11,7 @@ import type {
   PageResult,
 } from "@/types/api";
 
-const DICT_BASE_URL = "/api/admin/dicts";
+const DICT_BASE_URL = "/api/admin/system/dict";
 
 type DictTagTypeCode = "N" | "P" | "S" | "W" | "I" | "D";
 
@@ -62,11 +62,22 @@ const encodeDictTagType = (tagType?: unknown): DictTagTypeCode => {
 const DictAPI = {
   /** 字典分页列表 */
   getPage(queryParams: DictTypeQueryParams) {
-    return request<any, PageResult<DictTypeItem>>({
-      url: `${DICT_BASE_URL}`,
+    // 后端分页参数为 page/size，搜索字段为 keyword
+    const { pageNum, pageSize, keywords, status, ...rest } = queryParams as any;
+    return request<any, { total: number; records: DictTypeItem[]; pages: number }>({
+      url: `${DICT_BASE_URL}/page`,
       method: "get",
-      params: queryParams,
-    });
+      params: {
+        page: pageNum,
+        size: pageSize,
+        keyword: keywords,
+        status,
+        ...rest,
+      },
+    }).then((res) => ({
+      list: res.records ?? [],
+      total: res.total ?? 0,
+    }));
   },
   /** 字典列表 */
   getList() {
@@ -91,17 +102,26 @@ const DictAPI = {
 
   /** 获取字典项分页列表 */
   getDictItemPage(dictCode: string, queryParams: DictItemQueryParams) {
-    return request<any, PageResult<DictItem>>({
-      url: `${DICT_BASE_URL}/${dictCode}/items`,
+    const { pageNum, pageSize, status, ...rest } = queryParams as any;
+    return request<any, { total: number; records: DictItem[]; pages: number }>({
+      url: `${DICT_BASE_URL}/${dictCode}/items/page`,
       method: "get",
-      params: queryParams,
-    }).then((res) => ({
-      ...res,
-      data: (res.data ?? []).map((item) => ({
-        ...item,
-        tagType: decodeDictTagType((item as any).tagType),
-      })),
-    }));
+      params: {
+        page: pageNum,
+        size: pageSize,
+        status,
+        ...rest,
+      },
+    }).then(
+      (res) =>
+        ({
+          list: (res.records ?? []).map((item) => ({
+            ...item,
+            tagType: decodeDictTagType((item as any).tagType),
+          })),
+          total: res.total ?? 0,
+        }) as PageResult<DictItem>
+    );
   },
   /** 获取字典项列表 */
   getDictItems(dictCode: string) {
@@ -115,6 +135,16 @@ const DictAPI = {
       }))
     );
   },
+  /** 获取字典项表单数据 */
+  getDictItemFormData(dictCode: string, id: string) {
+    return request<any, DictItemForm>({
+      url: `${DICT_BASE_URL}/${dictCode}/items/${id}/form`,
+      method: "get",
+    }).then((form) => ({
+      ...form,
+      tagType: decodeDictTagType((form as any).tagType),
+    }));
+  },
   /** 新增字典项 */
   createDictItem(dictCode: string, data: DictItemForm) {
     return request({
@@ -126,20 +156,10 @@ const DictAPI = {
       },
     });
   },
-  /** 获取字典项表单数据 */
-  getDictItemFormData(dictCode: string, id: string) {
-    return request<any, DictItemForm>({
-      url: `${DICT_BASE_URL}/${dictCode}/items/${id}/form`,
-      method: "get",
-    }).then((form) => ({
-      ...form,
-      tagType: decodeDictTagType((form as any).tagType),
-    }));
-  },
   /** 修改字典项 */
   updateDictItem(dictCode: string, id: string, data: DictItemForm) {
     return request({
-      url: `${DICT_BASE_URL}/${dictCode}/items/${id}`,
+      url: `${DICT_BASE_URL}/items/${id}`,
       method: "put",
       data: {
         ...data,
@@ -149,7 +169,7 @@ const DictAPI = {
   },
   /** 删除字典项 */
   deleteDictItems(dictCode: string, ids: string) {
-    return request({ url: `${DICT_BASE_URL}/${dictCode}/items/${ids}`, method: "delete" });
+    return request({ url: `${DICT_BASE_URL}/items/${ids}`, method: "delete" });
   },
 };
 

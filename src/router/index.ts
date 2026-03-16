@@ -108,6 +108,48 @@ export const constantRoutes: RouteRecordRaw[] = [
         },
       },
       {
+        // 系统设置-字典管理：
+        // - 路由地址：/#/system/dict
+        // - 页面文件：src/views/system/dict/index.vue
+        path: "system/dict",
+        component: () => import("@/views/system/dict/index.vue"),
+        name: "SystemDict",
+        meta: {
+          title: "字典管理",
+          icon: "list",
+          hidden: true,
+          keepAlive: true,
+        },
+      },
+      {
+        // 系统设置-参数配置：
+        // - 路由地址：/#/system/config
+        // - 页面文件：src/views/system/config/index.vue
+        path: "system/config",
+        component: () => import("@/views/system/config/index.vue"),
+        name: "SystemConfig",
+        meta: {
+          title: "参数配置",
+          icon: "list",
+          hidden: true,
+          keepAlive: true,
+        },
+      },
+      {
+        // 系统设置-操作日志：
+        // - 路由地址：/#/system/log
+        // - 页面文件：src/views/system/log/index.vue
+        path: "system/log",
+        component: () => import("@/views/system/log/index.vue"),
+        name: "SystemOperLog",
+        meta: {
+          title: "操作日志",
+          icon: "list",
+          hidden: true,
+          keepAlive: true,
+        },
+      },
+      {
         path: "401",
         component: () => import("@/views/error/401.vue"),
         meta: { hidden: true },

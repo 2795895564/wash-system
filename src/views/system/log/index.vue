@@ -1,119 +1,108 @@
-﻿<template>
+<template>
   <div class="app-container">
-    <!-- 搜索区域 -->
-    <div class="filter-section">
-      <el-form ref="queryFormRef" :model="queryParams" :inline="true" label-width="auto">
-        <el-form-item prop="keywords" label="关键字">
-          <el-input
-            v-model="queryParams.keywords"
-            placeholder="日志内容"
-            clearable
-            @keyup.enter="handleQuery"
-          />
-        </el-form-item>
+    <page-search ref="searchRef" :search-config="searchConfig" @query-click="handleQueryClick" />
 
-        <el-form-item prop="createTime" label="操作时间">
-          <el-date-picker
-            v-model="queryParams.createTime"
-            :editable="false"
-            type="daterange"
-            range-separator="~"
-            start-placeholder="开始时间"
-            end-placeholder="截止时间"
-            value-format="YYYY-MM-DD"
-            style="width: 260px"
-          />
-        </el-form-item>
+    <page-content
+      ref="contentRef"
+      :content-config="contentConfig"
+      @operate-click="handleOperateClick"
+    >
+      <template #success="{ row }">
+        <el-tag :type="row.success === 1 ? 'success' : 'danger'">
+          {{ row.success === 1 ? "成功" : "失败" }}
+        </el-tag>
+      </template>
 
-        <el-form-item class="search-buttons">
-          <el-button type="primary" icon="search" @click="handleQuery">搜索</el-button>
-          <el-button icon="refresh" @click="handleResetQuery">重置</el-button>
-        </el-form-item>
-      </el-form>
-    </div>
+      <template #path="{ row }">
+        <el-tooltip :content="row.path" placement="top" :show-after="300">
+          <span class="line-clamp-1">{{ row.path }}</span>
+        </el-tooltip>
+      </template>
 
-    <el-card shadow="hover" class="table-section">
-      <el-table
-        v-loading="loading"
-        :data="pageData"
-        highlight-current-row
-        border
-        class="table-section__content"
-      >
-        <el-table-column label="操作时间" prop="createTime" width="220" />
-        <el-table-column label="操作人" prop="operator" width="120" />
-        <el-table-column label="日志模块" prop="module" width="100" />
-        <el-table-column label="日志内容" prop="content" min-width="200" />
-        <el-table-column label="IP 地址" prop="ip" width="150" />
-        <el-table-column label="地区" prop="region" width="150" />
-        <el-table-column label="浏览器" prop="browser" width="150" />
-        <el-table-column label="终端系统" prop="os" width="200" show-overflow-tooltip />
-        <el-table-column label="执行时间(ms)" prop="executionTime" width="150" />
-      </el-table>
+      <template #requestParams="{ row }">
+        <el-tooltip :content="row.requestParams" placement="top" :show-after="300">
+          <span class="line-clamp-1">{{ row.requestParams || "-" }}</span>
+        </el-tooltip>
+      </template>
+    </page-content>
 
-      <pagination
-        v-if="total > 0"
-        v-model:total="total"
-        v-model:page="queryParams.pageNum"
-        v-model:limit="queryParams.pageSize"
-        @pagination="fetchData"
-      />
-    </el-card>
+    <!-- 日志详情：只读抽屉，避免表格里信息过载 -->
+    <el-drawer v-model="drawerVisible" title="操作日志详情" size="520px">
+      <el-descriptions :column="1" border>
+        <el-descriptions-item label="用户名">
+          {{ currentRow?.username || "-" }}
+        </el-descriptions-item>
+        <el-descriptions-item label="用户ID">{{ currentRow?.userId ?? "-" }}</el-descriptions-item>
+        <el-descriptions-item label="方法">{{ currentRow?.method || "-" }}</el-descriptions-item>
+        <el-descriptions-item label="路径">{{ currentRow?.path || "-" }}</el-descriptions-item>
+        <el-descriptions-item label="IP">{{ currentRow?.ip || "-" }}</el-descriptions-item>
+        <el-descriptions-item label="耗时(ms)">
+          {{ currentRow?.costMs ?? "-" }}
+        </el-descriptions-item>
+        <el-descriptions-item label="响应码">
+          {{ currentRow?.responseCode || "-" }}
+        </el-descriptions-item>
+        <el-descriptions-item label="是否成功">
+          <el-tag :type="currentRow?.success === 1 ? 'success' : 'danger'">
+            {{ currentRow?.success === 1 ? "成功" : "失败" }}
+          </el-tag>
+        </el-descriptions-item>
+        <el-descriptions-item label="UA">{{ currentRow?.userAgent || "-" }}</el-descriptions-item>
+        <el-descriptions-item label="请求参数">
+          <pre class="log-pre">{{ currentRow?.requestParams || "" }}</pre>
+        </el-descriptions-item>
+        <el-descriptions-item label="时间">
+          {{ currentRow?.createTime || "-" }}
+        </el-descriptions-item>
+      </el-descriptions>
+    </el-drawer>
   </div>
 </template>
 
 <script setup lang="ts">
+import PageSearch from "@/components/CURD/PageSearch.vue";
+import PageContent from "@/components/CURD/PageContent.vue";
+import usePage from "@/components/CURD/usePage";
+
+import type { IObject } from "@/components/CURD/types";
+import type { OperLogItem } from "@/api/system/log";
+
+import searchConfig from "./config/search";
+import contentConfig from "./config/content";
+
 defineOptions({
-  name: "Log",
+  name: "SystemOperLog",
   inheritAttrs: false,
 });
 
-import LogAPI from "@/api/system/log";
-import type { LogItem, LogQueryParams } from "@/types/api";
+const { searchRef, contentRef, handleQueryClick } = usePage();
 
-const queryFormRef = ref();
+const drawerVisible = ref(false);
+const currentRow = ref<OperLogItem | null>(null);
 
-const loading = ref(false);
-const total = ref(0);
-
-const queryParams = reactive<LogQueryParams>({
-  pageNum: 1,
-  pageSize: 10,
-  keywords: "",
-  createTime: undefined as [string, string] | undefined,
-});
-
-// 日志表格数据
-const pageData = ref<LogItem[]>();
-
-/** 获取数据 */
-function fetchData() {
-  loading.value = true;
-  LogAPI.getPage(queryParams)
-    .then((data) => {
-      pageData.value = data.list;
-      total.value = data.total ?? 0;
-    })
-    .finally(() => {
-      loading.value = false;
-    });
-}
-
-/** 查询（重置页码后获取数据）*/
-function handleQuery() {
-  queryParams.pageNum = 1;
-  fetchData();
-}
-
-/** 重置查询 */
-function handleResetQuery() {
-  queryFormRef.value.resetFields();
-  queryParams.pageNum = 1;
-  queryParams.createTime = undefined;
-  fetchData();
-}
-
-onMounted(() => {
-  handleQuery();
-});
+const handleOperateClick = (data: IObject) => {
+  if (data.name === "view") {
+    currentRow.value = data.row as OperLogItem;
+    drawerVisible.value = true;
+  }
+};
 </script>
+
+<style scoped>
+.line-clamp-1 {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.log-pre {
+  padding: 8px;
+  margin: 0;
+  word-break: break-all;
+  white-space: pre-wrap;
+  background: var(--el-fill-color-light);
+  border-radius: 4px;
+}
+</style>

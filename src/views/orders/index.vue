@@ -51,8 +51,6 @@
         </el-form-item>
       </el-form>
 
-      <el-alert v-if="notice" :title="notice" type="info" show-icon class="mb-3" />
-
       <el-table v-loading="loading" :data="tableData" class="w-full">
         <el-table-column prop="orderId" label="订单ID" width="90" />
         <el-table-column prop="orderSn" label="订单编号" min-width="160" />
@@ -180,7 +178,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { useAppStore } from "@/store/modules/app";
@@ -232,11 +230,6 @@ const pageTitle = computed(() => {
   if (range === "today") return "今日订单";
   if (statusQ === "pending") return "待处理订单";
   return "订单管理";
-});
-
-const notice = computed(() => {
-  const from = route.query.from;
-  return from === "dashboard" ? "已从仪表盘跳转，已为你自动带入筛选条件。" : "";
 });
 
 const emptyDescription = computed(() => {
@@ -483,8 +476,4 @@ watch(
     fetchList();
   }
 );
-
-onMounted(() => {
-  fetchList();
-});
 </script>

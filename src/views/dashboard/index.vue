@@ -1,8 +1,5 @@
 ﻿<template>
   <div class="dashboard-container">
-    <!-- github 角标 -->
-    <github-corner class="github-corner" />
-
     <el-card shadow="never" class="mt-2">
       <div class="flex flex-wrap">
         <!-- 左侧问候语区域 -->
@@ -20,98 +17,19 @@
           </div>
         </div>
 
-        <!-- 右侧图标区域 - PC端-->
         <div class="hidden sm:block">
-          <div class="flex items-end space-x-6">
-            <!-- 仓库 -->
-            <div>
-              <div class="font-bold color-#ff9a2e text-sm flex items-center">
-                <el-icon class="mr-2px"><Folder /></el-icon>
-                仓库
-              </div>
-              <div class="mt-3 whitespace-nowrap">
-                <el-link href="https://gitee.com/youlaiorg/vue3-element-admin" target="_blank">
-                  <div class="i-svg:gitee text-lg color-#F76560" />
-                </el-link>
-                <el-divider direction="vertical" />
-                <el-link href="https://github.com/youlaitech/vue3-element-admin" target="_blank">
-                  <div class="i-svg:github text-lg color-#4080FF" />
-                </el-link>
-                <el-divider direction="vertical" />
-                <el-link href="https://gitcode.com/youlai/vue3-element-admin" target="_blank">
-                  <div class="i-svg:gitcode text-lg color-#FF9A2E" />
-                </el-link>
-              </div>
-            </div>
-
-            <!-- 文档 -->
-            <div>
-              <div class="font-bold color-#4080ff text-sm flex items-center">
-                <el-icon class="mr-2px"><Document /></el-icon>
-                文档
-              </div>
-              <div class="mt-3 whitespace-nowrap">
-                <el-link href="https://juejin.cn/post/7228990409909108793" target="_blank">
-                  <div class="i-svg:juejin text-lg" />
-                </el-link>
-                <el-divider direction="vertical" />
-                <el-link
-                  href="https://youlai.blog.csdn.net/article/details/130191394"
-                  target="_blank"
-                >
-                  <div class="i-svg:csdn text-lg" />
-                </el-link>
-                <el-divider direction="vertical" />
-                <el-link href="https://www.cnblogs.com/haoxianrui/p/17331952.html" target="_blank">
-                  <div class="i-svg:cnblogs text-lg" />
-                </el-link>
-              </div>
-            </div>
-
-            <!-- 视频 -->
-            <div>
-              <div class="font-bold color-#f76560 text-sm flex items-center">
-                <el-icon class="mr-2px"><VideoCamera /></el-icon>
-                视频
-              </div>
-              <div class="mt-3 whitespace-nowrap">
-                <el-link href="https://www.bilibili.com/video/BV1eFUuYyEFj" target="_blank">
-                  <div class="i-svg:bilibili text-lg" />
-                </el-link>
-              </div>
-            </div>
+          <div class="text-sm text-gray leading-6">
+            <div class="font-bold text-base mb-1">门店运营提醒</div>
+            <div>1. 高峰时段优先处理待接单与待送回</div>
+            <div>2. 关注异常订单，及时联系用户确认信息</div>
+            <div>3. 按服务分类核对收入构成，优化热门项目</div>
           </div>
         </div>
 
-        <!-- 移动端图标区域-->
         <div class="w-full sm:hidden mt-3">
-          <div class="flex justify-end space-x-4 overflow-x-auto">
-            <!-- 仓库图标 -->
-            <el-link href="https://gitee.com/youlaiorg/vue3-element-admin" target="_blank">
-              <div class="i-svg:gitee text-lg color-#F76560" />
-            </el-link>
-            <el-link href="https://github.com/youlaitech/vue3-element-admin" target="_blank">
-              <div class="i-svg:github text-lg color-#4080FF" />
-            </el-link>
-            <el-link href="https://gitcode.com/youlai/vue3-element-admin" target="_blank">
-              <div class="i-svg:gitcode text-lg color-#FF9A2E" />
-            </el-link>
-
-            <!-- 文档图标 -->
-            <el-link href="https://juejin.cn/post/7228990409909108793" target="_blank">
-              <div class="i-svg:juejin text-lg" />
-            </el-link>
-            <el-link href="https://youlai.blog.csdn.net/article/details/130191394" target="_blank">
-              <div class="i-svg:csdn text-lg" />
-            </el-link>
-            <el-link href="https://www.cnblogs.com/haoxianrui/p/17331952.html" target="_blank">
-              <div class="i-svg:cnblogs text-lg" />
-            </el-link>
-
-            <!-- 视频图标 -->
-            <el-link href="https://www.bilibili.com/video/BV1eFUuYyEFj" target="_blank">
-              <div class="i-svg:bilibili text-lg" />
-            </el-link>
+          <div class="text-sm text-gray leading-6">
+            <div class="font-bold text-base mb-1">门店运营提醒</div>
+            <div>高峰优先处理待接单/待送回，异常订单及时跟进。</div>
           </div>
         </div>
       </div>
@@ -269,7 +187,15 @@ const greetings = computed(() => {
 
 const todayOrderCount = ref(0);
 const todayIncome = ref(0);
-const pendingOrderCount = ref(0);
+const pendingOrderCountStatus0 = ref<number | null>(null);
+const pendingOrderCountStatus30 = ref<number | null>(null);
+const pendingOrderCountFallback = ref(0);
+const pendingOrderCount = computed(() => {
+  if (pendingOrderCountStatus0.value !== null && pendingOrderCountStatus30.value !== null) {
+    return pendingOrderCountStatus0.value + pendingOrderCountStatus30.value;
+  }
+  return pendingOrderCountFallback.value;
+});
 const riderTodayFinishCount = ref(0);
 
 const orderTrendDateRange = ref<"day" | "week" | "month">("day");
@@ -431,7 +357,7 @@ function handleGotoTodayOrders() {
 }
 
 function handleGotoTodayIncomeOrders() {
-  router.push({ path: "/orders", query: { range: "today", paid: "1", from: "dashboard" } });
+  router.push({ path: "/orders", query: { range: "today", from: "dashboard" } });
 }
 
 function handleGotoPendingOrders() {
@@ -457,7 +383,21 @@ onMounted(async () => {
   if (statsRes.status === "fulfilled") {
     todayOrderCount.value = statsRes.value.todayOrderCount;
     todayIncome.value = statsRes.value.todayIncome;
-    pendingOrderCount.value = statsRes.value.pendingOrderCount;
+    const anyStats: any = statsRes.value;
+    pendingOrderCountStatus0.value =
+      typeof anyStats?.pendingOrderCountStatus0 === "number"
+        ? anyStats.pendingOrderCountStatus0
+        : typeof anyStats?.todayPendingOrderCountStatus0 === "number"
+          ? anyStats.todayPendingOrderCountStatus0
+          : null;
+    pendingOrderCountStatus30.value =
+      typeof anyStats?.pendingOrderCountStatus30 === "number"
+        ? anyStats.pendingOrderCountStatus30
+        : typeof anyStats?.todayPendingOrderCountStatus30 === "number"
+          ? anyStats.todayPendingOrderCountStatus30
+          : null;
+
+    pendingOrderCountFallback.value = statsRes.value.pendingOrderCount;
     riderTodayFinishCount.value = statsRes.value.riderTodayFinishCount;
   } else {
     ElMessage.error("获取仪表盘统计数据失败");
@@ -492,14 +432,6 @@ onMounted(async () => {
 .dashboard-container {
   position: relative;
   padding: 24px;
-
-  .github-corner {
-    position: absolute;
-    top: 0;
-    right: 0;
-    z-index: 1;
-    border: 0;
-  }
 
   .version-item {
     padding: 16px;
