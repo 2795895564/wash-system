@@ -130,6 +130,34 @@ export const constantRoutes: RouteRecordRaw[] = [
         meta: { title: "指派骑手", icon: "user", hidden: true },
       },
       {
+        // 任务大厅（骑手管理）：
+        // - 路由地址：/#/rider/hall
+        // - 页面文件：src/views/rider/hall/index.vue
+        path: "rider/hall",
+        name: "RiderHall",
+        component: () => import("@/views/rider/hall/index.vue"),
+        meta: {
+          title: "任务大厅",
+          icon: "list",
+          hidden: true,
+          keepAlive: true,
+        },
+      },
+      {
+        // 骑手业绩（骑手管理）：
+        // - 路由地址：/#/rider/performance
+        // - 页面文件：src/views/rider/performance/index.vue
+        path: "rider/performance",
+        name: "RiderPerformance",
+        component: () => import("@/views/rider/performance/index.vue"),
+        meta: {
+          title: "骑手业绩",
+          icon: "list",
+          hidden: true,
+          keepAlive: true,
+        },
+      },
+      {
         path: "my-notice",
         name: "MyNotice",
         component: () => import("@/views/profile/notice/index.vue"),

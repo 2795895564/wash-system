@@ -219,122 +219,7 @@
           <ECharts v-else :options="riderRankingChartOptions" height="400px" />
         </el-card>
       </el-col>
-
-      <el-col :xs="24" :span="8">
-        <el-card>
-          <template #header>
-            <div class="flex-x-between">
-              <span>快捷操作</span>
-            </div>
-          </template>
-
-          <div class="flex flex-col gap-3">
-            <el-button type="primary" size="large" @click="handleCreateOrder">新建订单</el-button>
-            <el-button type="warning" size="large" @click="handleAssignRider">指派骑手</el-button>
-          </div>
-        </el-card>
-      </el-col>
     </el-row>
-
-    <el-dialog
-      v-model="createOrderVisible"
-      title="新建订单"
-      width="640px"
-      :close-on-click-modal="false"
-    >
-      <el-form
-        ref="createOrderFormRef"
-        :model="createOrderForm"
-        :rules="createOrderRules"
-        label-width="100px"
-      >
-        <el-form-item label="学生" prop="studentId">
-          <el-select
-            v-model="createOrderForm.studentId"
-            filterable
-            placeholder="请输入关键词搜索"
-            style="width: 100%"
-          >
-            <el-option
-              v-for="s in studentOptions"
-              :key="s.id"
-              :label="`${s.name}（ID:${s.id}）`"
-              :value="s.id"
-            />
-          </el-select>
-        </el-form-item>
-
-        <el-form-item label="服务分类">
-          <el-select
-            v-model="selectedServiceCategoryId"
-            placeholder="请选择服务分类"
-            style="width: 100%"
-            @change="handleChangeServiceCategory"
-          >
-            <el-option
-              v-for="c in serviceCategoryOptions"
-              :key="c.id"
-              :label="c.name"
-              :value="c.id"
-            />
-          </el-select>
-        </el-form-item>
-
-        <el-form-item label="地址" prop="address">
-          <el-input v-model="createOrderForm.address" placeholder="如：郑科南苑 4号楼 104室" />
-        </el-form-item>
-
-        <el-form-item label="楼栋" prop="building">
-          <el-input v-model="createOrderForm.building" placeholder="如：4号楼" />
-        </el-form-item>
-
-        <el-form-item label="预约时间" prop="appointmentTime">
-          <el-date-picker
-            v-model="createOrderForm.appointmentTime"
-            type="datetime"
-            value-format="YYYY-MM-DDTHH:mm:ss"
-            format="YYYY-MM-DD HH:mm:ss"
-            placeholder="请选择预约时间"
-            style="width: 100%"
-          />
-        </el-form-item>
-
-        <el-form-item label="备注" prop="remark">
-          <el-input v-model="createOrderForm.remark" type="textarea" :rows="3" placeholder="可选" />
-        </el-form-item>
-
-        <el-form-item label="服务项" prop="items">
-          <div class="w-full">
-            <div
-              v-for="(it, idx) in createOrderForm.items"
-              :key="idx"
-              class="flex gap-2 items-center mb-2"
-            >
-              <el-select v-model="it.serviceId" placeholder="服务项" style="flex: 1">
-                <el-option
-                  v-for="svc in serviceOptions"
-                  :key="svc.id"
-                  :label="svc.name"
-                  :value="svc.id"
-                />
-              </el-select>
-              <el-input-number v-model="it.quantity" :min="1" :step="1" />
-              <el-button type="danger" plain @click="handleRemoveServiceItem(idx)">删除</el-button>
-            </div>
-            <el-button type="primary" plain @click="handleAddServiceItem">添加服务项</el-button>
-          </div>
-        </el-form-item>
-      </el-form>
-
-      <template #footer>
-        <el-button :disabled="createOrderSubmitting" @click="createOrderVisible = false">
-          取消
-        </el-button>
-        <el-button type="primary" :loading="createOrderSubmitting" @click="handleSubmitCreateOrder">
-          提交
-        </el-button>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
@@ -345,12 +230,9 @@ defineOptions({
 });
 
 import { computed, onMounted, ref } from "vue";
-import type { FormInstance, FormRules } from "element-plus";
 import { useUserStore } from "@/store/modules/user";
 import { useRouter } from "vue-router";
 import DashboardAPI from "@/api/dashboard";
-import OrderAPI from "@/api/order";
-import type { CreateOrderRequest } from "@/api/order";
 import type {
   IncomeCompositionResponse,
   OrderTrendResponse,
@@ -394,54 +276,6 @@ const orderTrendDateRange = ref<"day" | "week" | "month">("day");
 const orderTrendChartOptions = ref<EChartsCoreOption>();
 const incomeCompositionChartOptions = ref<EChartsCoreOption>();
 const riderRankingChartOptions = ref<EChartsCoreOption>();
-
-const createOrderVisible = ref(false);
-const createOrderSubmitting = ref(false);
-const createOrderFormRef = ref<FormInstance>();
-
-const studentOptions = ref<Array<{ id: number; name: string }>>([{ id: 5, name: "测试学生" }]);
-
-const serviceOptions = ref<Array<{ id: number; name: string }>>([]);
-const serviceCategoryOptions = ref<Array<{ id: number; name: string }>>([]);
-const selectedServiceCategoryId = ref<number>();
-
-const createOrderForm = ref<CreateOrderRequest>({
-  studentId: 5,
-  address: "郑科南苑 8号楼 411室",
-  building: "8号楼",
-  appointmentTime: "",
-  remark: "",
-  items: [{ serviceId: 101, quantity: 1 }],
-});
-
-const createOrderRules: FormRules = {
-  studentId: [{ required: true, message: "请选择学生", trigger: "change" }],
-  address: [{ required: true, message: "请输入地址", trigger: "blur" }],
-  appointmentTime: [{ required: true, message: "请选择预约时间", trigger: "change" }],
-  items: [
-    {
-      validator: (_rule, value, callback) => {
-        if (!Array.isArray(value) || value.length === 0) {
-          callback(new Error("请至少添加 1 个服务项"));
-          return;
-        }
-        for (const it of value) {
-          if (!it?.serviceId) {
-            callback(new Error("请选择服务项"));
-            return;
-          }
-          const qty = Number(it?.quantity ?? 0);
-          if (!Number.isFinite(qty) || qty <= 0) {
-            callback(new Error("服务项数量必须大于 0"));
-            return;
-          }
-        }
-        callback();
-      },
-      trigger: "change",
-    },
-  ],
-};
 
 function buildOrderTrendOptions(list: OrderTrendResponse) {
   const sorted = [...list].sort((a, b) => a.date.localeCompare(b.date));
@@ -592,79 +426,6 @@ function buildRiderRankingOptions(list: RiderRankingResponse) {
   };
 }
 
-function handleCreateOrder() {
-  createOrderVisible.value = true;
-  void preloadCreateOrderData();
-}
-
-async function preloadCreateOrderData() {
-  const categories = await OrderAPI.getCategoryList().catch(() => []);
-
-  serviceCategoryOptions.value = categories;
-
-  if (!selectedServiceCategoryId.value && categories.length) {
-    selectedServiceCategoryId.value = categories[0].id;
-  }
-
-  if (selectedServiceCategoryId.value) {
-    await handleChangeServiceCategory(selectedServiceCategoryId.value);
-  }
-}
-
-async function handleChangeServiceCategory(categoryId: number) {
-  selectedServiceCategoryId.value = categoryId;
-  const detail = await OrderAPI.getCategoryDetail(categoryId);
-  serviceOptions.value = (detail?.services ?? []).map((s) => ({ id: s.id, name: s.serviceName }));
-
-  const serviceIdSet = new Set(serviceOptions.value.map((s) => s.id));
-  const defaultServiceId = serviceOptions.value[0]?.id;
-
-  if (!defaultServiceId) return;
-
-  for (const it of createOrderForm.value.items) {
-    const sid = Number(it.serviceId);
-    if (!serviceIdSet.has(sid)) {
-      it.serviceId = defaultServiceId;
-    }
-  }
-}
-
-function handleAddServiceItem() {
-  createOrderForm.value.items.push({ serviceId: serviceOptions.value[0]?.id ?? 0, quantity: 1 });
-}
-
-function handleRemoveServiceItem(index: number) {
-  createOrderForm.value.items.splice(index, 1);
-}
-
-async function handleSubmitCreateOrder() {
-  if (!createOrderFormRef.value) return;
-  if (createOrderSubmitting.value) return;
-
-  const valid = await createOrderFormRef.value.validate().catch(() => false);
-  if (!valid) return;
-
-  try {
-    createOrderSubmitting.value = true;
-    const resp = await OrderAPI.createOrder({
-      studentId: Number(createOrderForm.value.studentId),
-      address: createOrderForm.value.address,
-      building: createOrderForm.value.building,
-      appointmentTime: createOrderForm.value.appointmentTime,
-      remark: createOrderForm.value.remark,
-      items: createOrderForm.value.items.map((i) => ({
-        serviceId: Number(i.serviceId),
-        quantity: Number(i.quantity),
-      })),
-    });
-    createOrderVisible.value = false;
-    ElMessage.success(`创建成功，订单号：${resp.orderSn}`);
-    router.push({ path: "/orders", query: { orderSn: resp.orderSn } });
-  } finally {
-    createOrderSubmitting.value = false;
-  }
-}
-
 function handleGotoTodayOrders() {
   router.push({ path: "/orders", query: { range: "today", from: "dashboard" } });
 }
@@ -682,10 +443,6 @@ function handleGotoPendingOrders() {
 
 function handleGotoRiderRanking() {
   router.push({ path: "/riders", query: { range: "today", from: "dashboard" } });
-}
-
-function handleAssignRider() {
-  router.push({ name: "AssignRider", query: { mode: "manual" } });
 }
 
 // 组件挂载后加载访客统计数据和通知公告数据
